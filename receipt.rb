@@ -15,7 +15,8 @@ class Receipt
       @outputs << [input[0], input[1], total_price]
     end
     @outputs << [(@sales_tax*20).round / 20.0, @total.round(2)]
-    return basket_one(@outputs)
+    #return basket_one(@outputs)
+    return @outputs
   end
 
   def basket_choice(choice)
@@ -103,7 +104,8 @@ def checkout
   price_list = basket.basket_choice(choice)
   puts price_list
 
-  basket.generate_receipt(choice, select_items(price_list))
+  output = basket.generate_receipt(choice, select_items(price_list))
+  receipt_output = basket.basket_one(output)
 end
 
 def select_items(price_list, input = [])
