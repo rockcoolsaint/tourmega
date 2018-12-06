@@ -1,62 +1,25 @@
 class Receipt
-  attr_accessor :choice
-  def initialize(option)
-    @choice = option
+  def initialize
   end
 
-  def generate_receipt
-    @inputs ||= []
+  def generate_receipt(choice, inputs)
+    @inputs ||= inputs
     @outputs ||= []
     @sales_tax ||= 0
     @total ||= 0
 
-
-    price_list = basket_choice
-    puts price_list
-    puts 'Select an item from the list'
-    items = []
-    price_list.each_key { |key| items << key }
-    items.each.with_index(1) { |item, index| puts "#{index}. #{item}" }
-
-    # select an item
-    print "Select an item by typing a number: "
-    item = gets.chomp
-    if !item.match(/[1-9]/)
-      puts "wrong input. Please select between 1 and 9"
-      generate_receipt
+    inputs.each do |input|
+      total_price = ((input[2] * input[1].to_i) + (tax(input[0], input[1].to_i, input[2])*20).round / 20.0).round(2)
+      @sales_tax += tax(input[0], input[1].to_i, input[2])
+      @total += total_price
+      @outputs << [input[1], input[0], total_price]
     end
-    item_choice = items[item.to_i - 1]
-    if !price_list.include? item_choice
-      puts "The item you chose doesn't exist"
-      generate_receipt
-    end
-    #puts item_choice
-    # input quantity
-    print "Item quantity?: "
-    puts ""
-    quantity = gets.chomp
-
-    #@inputs << [item_choice, quantity, price_list[:"#{item_choice}"]]
-
-    total_price = ((price_list[:"#{item_choice}"] * quantity.to_i) + (tax(item_choice, quantity, price_list[:"#{item_choice}"])*20).round / 20.0).round(2)
-    # cummulative sales tax per basket
-    @sales_tax += tax(item_choice, quantity, price_list[:"#{item_choice}"])
-    @total += total_price
-    @outputs << [quantity, item_choice, total_price]
-    puts "Are you done?  Y/N"
-    res = gets.chomp
-    if !(res.downcase === "yes" || res.downcase === "y")
-      generate_receipt
-    else
-      @outputs << [(@sales_tax*20).round / 20.0, @total.round(2)]
-      
-      #@outputs << []
-      return basket_one(@outputs)
-    end
+    @outputs << [(@sales_tax*20).round / 20.0, @total.round(2)]
+    return basket_one(@outputs)
   end
 
-  def basket_choice
-    shopping_basket = @choice
+  def basket_choice(choice)
+    shopping_basket = choice
 
     case shopping_basket
     when "1"
@@ -128,15 +91,57 @@ end
 def checkout
   puts "select shopping basket"
   puts "available options are 1, 2, 0r 3"
-  basket_choice = gets.chomp
-  if !basket_choice.match(/[1-3]/)
+  choice = gets.chomp
+  if !choice.match(/[1-3]/)
     puts "wrong input, please make sure you type 1, 2, or 3"
     checkout
   end
 
 
-  basket = Receipt.new(basket_choice)
-  basket.generate_receipt
+  #basket = Receipt.new(basket_choice)
+  basket = Receipt.new
+  price_list = basket.basket_choice(choice)
+  puts price_list
+
+  basket.generate_receipt(choice, select_items(price_list))
+end
+
+def select_items(price_list, input = [])
+  inputs ||= input
+  puts 'Select an item from the list'
+  items = []
+  price_list.each_key { |key| items << key }
+  items.each.with_index(1) { |item, index| puts "#{index}. #{item}" }
+
+  # select an item
+  print "Select an item by typing a number: "
+  item = gets.chomp
+  if !item.match(/[1-9]/)
+    puts "wrong input. Please select between 1 and 9"
+    select_items(price_list)
+  end
+  item_choice = items[item.to_i - 1]
+  if !price_list.include? item_choice
+    puts "The item you chose doesn't exist"
+    select_items(price_list)
+  end
+  #puts item_choice
+  # input quantity
+  print "Item quantity?: "
+  puts ""
+  quantity = gets.chomp
+
+  inputs << [item_choice, quantity, price_list[:"#{item_choice}"]]
+
+  puts "Are you done?  Y/N"
+  res = gets.chomp
+  if !(res.downcase === "yes" || res.downcase === "y")
+    select_items(price_list, inputs)
+  else
+    return inputs
+  end
+
+  #return inputs
 end
 
 checkout
