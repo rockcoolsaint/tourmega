@@ -9,10 +9,10 @@ class Receipt
     @total ||= 0
 
     inputs.each do |input|
-      total_price = ((input[2] * input[1].to_i) + (tax(input[0], input[1].to_i, input[2])*20).round / 20.0).round(2)
-      @sales_tax += tax(input[0], input[1].to_i, input[2])
+      total_price = ((input[2] * input[0].to_i) + (tax(input[1], input[0].to_i, input[2])*20).round / 20.0).round(2)
+      @sales_tax += tax(input[1], input[0].to_i, input[2])
       @total += total_price
-      @outputs << [input[1], input[0], total_price]
+      @outputs << [input[0], input[1], total_price]
     end
     @outputs << [(@sales_tax*20).round / 20.0, @total.round(2)]
     return basket_one(@outputs)
@@ -131,7 +131,7 @@ def select_items(price_list, input = [])
   puts ""
   quantity = gets.chomp
 
-  inputs << [item_choice, quantity, price_list[:"#{item_choice}"]]
+  inputs << [quantity, item_choice, price_list[:"#{item_choice}"]]
 
   puts "Are you done?  Y/N"
   res = gets.chomp
